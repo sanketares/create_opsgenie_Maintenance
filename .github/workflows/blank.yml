@@ -1,7 +1,7 @@
 name: Opsgenie Maintenance Mode
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:  # Allows manual trigger
 
 jobs:
   maintenance_mode:
@@ -9,11 +9,8 @@ jobs:
     steps:
       - name: Disable CloudWatch Integration in Opsgenie
         run: |
-          curl -X PATCH "https://api.opsgenie.com/v2/integrations/<CLOUDWATCH_INTEGRATION_ID>" \
+          curl -X PUT "https://api.opsgenie.com/v2/integrations/${{ secrets.CLOUDWATCH_INTEGRATION_ID }}/disable" \
           -H "Authorization: GenieKey ${{ secrets.OPSGENIE_API_KEY }}" \
-          -H "Content-Type: application/json" \
-          -d '{"enabled": false}'
-        env:
-          CLOUDWATCH_INTEGRATION_ID: "17a38b3f-d83b-4db4-b3bc-44bf49f9650b"
+          -H "Content-Type: application/json"
 
 
