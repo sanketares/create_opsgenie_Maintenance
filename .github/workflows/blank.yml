@@ -7,10 +7,17 @@ jobs:
   maintenance_mode:
     runs-on: ubuntu-latest
     steps:
-      - name: Disable CloudWatch Integration in Opsgenie
+      - name: Start Maintenance Mode in Opsgenie
+        id: start_maintenance
         run: |
-          curl -X PUT "https://api.opsgenie.com/v2/integrations/${{ secrets.CLOUDWATCH_INTEGRATION_ID }}/disable" \
-          -H "Authorization: GenieKey ${{ secrets.OPSGENIE_API_KEY }}" \
-          -H "Content-Type: application/json"
-
+          RESPONSE=$(curl -s -X POST "https://api.opsgenie.com/v1/maintenance" \
+            -H "Authorization: GenieKey ${{ secrets.OPSGENIE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "description": "Scheduled maintenance to disable CloudWatch integration",
+              "time": {"type": "minutes", "value": 5},
+              "services": ["CloudWatch"]
+            }')
+          MAINTENANCE_ID=$(echo $RESPONSE | jq -r '.data.id')
+          echo "MAINTENANCE_ID=$MAINTENANCE_ID" >> $GITHUB_ENV
 
