@@ -1,36 +1,19 @@
-name: Enable Opsgenie Maintenance Mode for Test Integration
+name: Opsgenie Maintenance Mode
 
 on:
-  workflow_dispatch: # Allows manual trigger from GitHub Actions
+  workflow_dispatch:  # Manual trigger
 
 jobs:
-  enable-maintenance:
+  maintenance_mode:
     runs-on: ubuntu-latest
     steps:
-      - name: Start Maintenance Mode (5 min)
+      - name: Disable CloudWatch Integration in Opsgenie
         run: |
-          START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          END_TIME=$(date -u -d "+5 minutes" +"%Y-%m-%dT%H:%M:%SZ")
-          
-          curl -X POST "https://api.opsgenie.com/v1/maintenance" \
+          curl -X PATCH "https://api.opsgenie.com/v2/integrations/<CLOUDWATCH_INTEGRATION_ID>" \
           -H "Authorization: GenieKey ${{ secrets.OPSGENIE_API_KEY }}" \
           -H "Content-Type: application/json" \
-          -d '{
-            "description": "GitHub Action triggered maintenance for Test Integration",
-            "startDate": "'"$START_TIME"'",
-            "endDate": "'"$END_TIME"'",
-            "integrationId": "${{ secrets.OPSGENIE_INTEGRATION_ID }}"
-          }'
+          -d '{"enabled": false}'
+        env:
+          CLOUDWATCH_INTEGRATION_ID: "17a38b3f-d83b-4db4-b3bc-44bf49f9650b"
 
-      - name: Confirm Maintenance Mode
-        run: |
-          curl -X GET "https://api.opsgenie.com/v1/maintenance" \
-          -H "Authorization: GenieKey ${{ secrets.OPSGENIE_API_KEY }}"
-          
-      - name: Wait for 5 Minutes
-        run: sleep 300
 
-      - name: Stop Maintenance Mode
-        run: |
-          curl -X DELETE "https://api.opsgenie.com/v1/maintenance" \
-          -H "Authorization: GenieKey ${{ secrets.OPSGENIE_API_KEY }}"
